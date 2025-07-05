@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GREEN-API Frontend</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f9f9f9;
+    }
+
+    .main-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+    }
+
+    .form-container {
+      flex: 1;
+      max-width: 450px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
+    .response-container {
+      flex: 1;
+      max-width: 450px;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+
+    input, textarea, button {
+      display: block;
+      margin: 10px 0;
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .response {
+      background: #f4f4f4;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 500px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      box-sizing: border-box;
+      border-radius: 5px;
+    }
+
+    h2, h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <div class="form-container">
+      <h2>Подключение</h2>
+      <input type="text" id="idInstance" placeholder="ID Instance" />
+      <input type="text" id="apiToken" placeholder="API Token" />
+
+      <h3>getSettings</h3>
+      <button onclick="callAPI('get-settings')">Вызвать getSettings</button>
+
+      <h3>getStateInstance</h3>
+      <button onclick="callAPI('get-state')">Вызвать getStateInstance</button>
+
+      <h3>sendMessage</h3>
+      <input type="text" id="msgPhone" placeholder="Номер (например, 79991112233)" />
+      <input type="text" id="msgText" placeholder="Текст сообщения" />
+      <button onclick="sendMessage()">Отправить сообщение</button>
+
+      <h3>sendFileByUrl</h3>
+      <input type="text" id="filePhone" placeholder="Номер" />
+      <input type="text" id="fileUrl" placeholder="URL файла" />
+      <input type="text" id="fileName" placeholder="Имя файла" />
+      <button onclick="sendFile()">Отправить файл</button>
+    </div>
+
+    <div class="response-container">
+      <h3>Ответ API:</h3>
+      <div class="response" id="responseBox"></div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = "http://localhost:8000/api/";
+
+    function getCreds() {
+      return {
+        idInstance: document.getElementById("idInstance").value,
+        apiTokenInstance: document.getElementById("apiToken").value
+      };
+    }
+
+    async function callAPI(endpoint) {
+      const creds = getCreds();
+
+      const res = await fetch(BASE_URL + endpoint + "/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(creds)
+      });
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    async function sendMessage() {
+      const creds = getCreds();
+      const payload = {
+        ...creds,
+        chatId: document.getElementById("msgPhone").value + "@c.us",
+        message: document.getElementById("msgText").value
+      };
+
+      const res = await fetch(BASE_URL + "send-message/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    async function sendFile() {
+      const creds = getCreds();
+      const payload = {
+        ...creds,
+        chatId: document.getElementById("filePhone").value + "@c.us",
+        urlFile: document.getElementById("fileUrl").value,
+        fileName: document.getElementById("fileName").value
+      };
+
+      const res = await fetch(BASE_URL + "send-file/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      showResponse(data);
+    }
+
+    function showResponse(data) {
+      document.getElementById("responseBox").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+
+</body>
+</html>
